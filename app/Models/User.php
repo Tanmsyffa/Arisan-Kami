@@ -5,35 +5,29 @@ namespace App\Models;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
-    use Notifiable;
+    use Notifiable, HasRoles, Notifiable;
 
     protected $fillable = [
         'name',
         'email',
-        'password',
-        'role' // Pastikan kolom 'role' ada di tabel users
+        'password'
     ];
 
     protected $hidden = ['password', 'remember_token'];
 
+    public function arisanGroups()
+    {
+        return $this->belongsToMany(ArisanGroup::class, 'arisan_group_members', 'user_id', 'group_id')
+            ->withTimestamps();
+    }
+
     public function payments(): HasMany
     {
         return $this->hasMany(Payment::class);
-    }
-
-    // Tambahkan method hasRole() berikut
-    public function hasRole($role): bool
-    {
-        // Periksa apakah role user sama dengan yang diminta
-        return $this->role === $role;
-    }
-
-    // Opsional: Method untuk memeriksa multiple roles
-    public function hasAnyRole(array $roles): bool
-    {
-        return in_array($this->role, $roles);
     }
 }

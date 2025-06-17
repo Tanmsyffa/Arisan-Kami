@@ -11,7 +11,7 @@ class PaymentController extends Controller
 {
     public function __construct()
     {
-        // Konfigurasi Midtrans di constructor untuk konsistensi
+        // Konfigurasi Midtrans
         Config::$serverKey = config('midtrans.server_key');
         Config::$isProduction = config('midtrans.is_production', false);
         Config::$isSanitized = true;
@@ -105,6 +105,91 @@ class PaymentController extends Controller
             
             return back()->with('error', 'Gagal membuat pembayaran: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Menampilkan semua pembayaran untuk admin
+     */
+    public function index(Request $request)
+    {
+        $search = $request->input('search');
+        $status = $request->input('status');
+        
+        $payments = Payment::with(['group', 'user'])
+            ->when($search, function ($query) use ($search) {
+                $query->where('midtrans_order_id', 'like', "%$search%")
+                    ->orWhereHas('user', function ($q) use ($search) {
+                        $q->where('name', 'like', "%$search%");
+                    })
+                    ->orWhereHas('group', function ($q) use ($search) {
+                        $q->where('name', 'like', "%$search%");
+                    });
+            })
+            ->when($status, function ($query) use ($status) {
+                $query->where('payment_status', $status);
+            })
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+
+        return view('admin.payments.index', compact('payments'));
+    }
+
+    /**
+     * Menampilkan detail pembayaran
+     */
+    public function show(Payment $payment)
+    {
+        return view('admin.payments.show', compact('payment'));
+    }
+
+    /**
+     * Form edit pembayaran
+     */
+    public function edit(Payment $payment)
+    {
+        return view('admin.payments.edit', compact('payment'));
+    }
+
+    /**
+     * Update pembayaran
+     */
+    public function update(Request $request, Payment $payment)
+    {
+        $validated = $request->validate([
+            'amount' => 'required|numeric|min:1000',
+            'payment_status' => 'required|in:pending,paid,failed,challenge,refunded',
+            'period' => 'required|date_format:Y-m',
+        ]);
+
+        $payment->update($validated);
+
+        return redirect()->route('admin.payments.index')
+            ->with('success', 'Pembayaran berhasil diperbarui!');
+    }
+
+    /**
+     * Hapus pembayaran
+     */
+    public function destroy(Payment $payment)
+    {
+        $payment->delete();
+        return redirect()->route('admin.payments.index')
+            ->with('success', 'Pembayaran berhasil dihapus!');
+    }
+
+    /**
+     * Verifikasi manual pembayaran oleh admin
+     */
+    public function verify(Payment $payment)
+    {
+        $payment->update([
+            'payment_status' => 'paid',
+            'transaction_status' => 'settlement',
+            'verified_at' => now()
+        ]);
+
+        return redirect()->route('admin.payments.index')
+            ->with('success', 'Pembayaran berhasil diverifikasi secara manual!');
     }
 
     public function callback(Request $request)

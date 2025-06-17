@@ -3,7 +3,7 @@
 @section('content')
 <h1 class="text-2xl font-bold mb-4">Manajemen Grup Arisan</h1>
 
-<a href="{{ route('groups.create') }}" class="mb-4 inline-block bg-indigo-600 text-white px-4 py-2 rounded">
+<a href="{{ route('admin.roups.create') }}" class="mb-4 inline-block bg-indigo-600 text-white px-4 py-2 rounded">
     + Tambah Grup
 </a>
 
