@@ -3,6 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Login - Arisan Kami</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -107,6 +108,22 @@
         .nav-links a:hover::after {
             width: 100%;
         }
+
+        .logout-btn {
+            background: var(--error);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            background: #dc2626;
+            transform: translateY(-2px);
+        }
         
         /* Auth Container */
         .auth-container {
@@ -172,6 +189,19 @@
             box-shadow: 0 0 0 4px rgba(168, 85, 247, 0.2);
             outline: none;
         }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--primary);
+        }
         
         .btn-primary {
             background: linear-gradient(90deg, var(--primary), var(--primary-dark));
@@ -220,6 +250,20 @@
             color: var(--success);
             margin-bottom: 1rem;
             text-align: center;
+            padding: 0.75rem;
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 8px;
+        }
+
+        .session-error {
+            color: var(--error);
+            margin-bottom: 1rem;
+            text-align: center;
+            padding: 0.75rem;
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 8px;
         }
         
         /* Register prompt */
@@ -262,31 +306,6 @@
             font-weight: 800;
         }
         
-        .social-links {
-            display: flex;
-            justify-content: center;
-            gap: 1rem;
-            margin-top: 0.5rem;
-        }
-        
-        .social-links a {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 40px;
-            height: 40px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 50%;
-            color: white;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-        }
-        
-        .social-links a:hover {
-            background: var(--accent);
-            transform: translateY(-3px);
-        }
-        
         .copyright {
             margin-top: 1rem;
             font-size: 0.8rem;
@@ -326,10 +345,14 @@
             <a href="{{ url('/#contact') }}">Contact</a>
             
             @auth
-                <a href="{{ route('dashboard') }}">Dashboard</a>
-                <form method="POST" action="{{ route('logout') }}">
+                @if(auth()->user()->hasRole('admin'))
+                    <a href="{{ route('admin.dashboard') }}">Dashboard</a>
+                @else
+                    <a href="{{ route('member.dashboard') }}">Dashboard</a>
+                @endif
+                <form method="POST" action="{{ route('logout') }}" style="display: inline;">
                     @csrf
-                    <button type="submit">Logout</button>
+                    <button type="submit" class="logout-btn">Logout</button>
                 </form>
             @endauth
         </div>
@@ -344,6 +367,13 @@
             @if (session('status'))
                 <div class="session-status">
                     {{ session('status') }}
+                </div>
+            @endif
+
+            <!-- Session Error -->
+            @if (session('error'))
+                <div class="session-error">
+                    {{ session('error') }}
                 </div>
             @endif
 
@@ -371,27 +401,27 @@
                 </div>
 
                 <!-- Remember Me -->
-                <div class="form-group flex items-center">
-                    <label for="remember_me" class="inline-flex items-center">
-                        <input id="remember_me" type="checkbox" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500" name="remember">
-                        <span class="ml-2 text-sm text-gray-600">Ingat saya</span>
-                    </label>
+                <div class="checkbox-group">
+                    <input id="remember_me" type="checkbox" name="remember">
+                    <label for="remember_me">Ingat saya</label>
                 </div>
 
                 <div class="form-footer">
                     <button type="submit" class="btn-primary">Masuk</button>
                     @if (Route::has('password.request'))
-                        <a class="text-sm text-gray-600 hover:text-gray-900" href="{{ route('password.request') }}">
+                        <a href="{{ route('password.request') }}">
                             Lupa password?
                         </a>
                     @endif
                 </div>
             </form>
             
-            <!-- Tambahkan link pendaftaran di sini -->
-            <div class="register-prompt">
-                Belum punya akun? <a href="{{ route('register') }}">klik disini</a>
-            </div>
+            <!-- Register prompt -->
+            @if (Route::has('register'))
+                <div class="register-prompt">
+                    Belum punya akun? <a href="{{ route('register') }}">Daftar di sini</a>
+                </div>
+            @endif
         </div>
     </div>
 

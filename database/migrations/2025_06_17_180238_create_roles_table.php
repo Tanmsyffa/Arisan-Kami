@@ -9,12 +9,13 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up(): void
+    public function up()
     {
-        Schema::table('arisan_groups', function (Blueprint $table) {
-            $table->foreignId('owner_id')->after('id')->constrained('users')->onDelete('cascade');
+        Schema::create('roles', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->timestamps();
         });
-
     }
 
     /**
@@ -22,8 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('arisan_groups', function (Blueprint $table) {
-            //
-        });
+        Schema::dropIfExists('roles');
     }
 };

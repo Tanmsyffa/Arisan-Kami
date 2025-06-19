@@ -5,69 +5,94 @@ use App\Http\Controllers\{
     ArisanGroupController,
     DashboardController,
     PaymentController,
-    ProfileController
+    ProfileController,
+    UserController
 };
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
-
-// Tambahkan di atas route yang ada
-Route::get('/login', [AuthenticatedSessionController::class, 'create'])->name('login');
-Route::post('/login', [AuthenticatedSessionController::class, 'store']);
 
 // Halaman awal
 Route::get('/', function () {
     if (auth()->check()) {
         // Redirect ke dashboard sesuai peran
         if (auth()->user()->hasRole('admin')) {
-            return redirect()->route('groups.index'); // ke dashboard admin
+            return redirect()->route('admin.dashboard');
         }
-        return redirect()->route('dashboard'); // ke dashboard member
+        return redirect()->route('member.dashboard');
     }
-    return view('index'); // tampilkan landing page jika belum login
+    return view('index');
 })->name('home');
 
+// Autentikasi
+Route::get('/login', [AuthenticatedSessionController::class, 'create'])->name('login');
+Route::post('/login', [AuthenticatedSessionController::class, 'store']);
 
 // Autentikasi & hak akses
 Route::middleware(['auth'])->group(function () {
+    
+    // Generic dashboard route that redirects based on role
+    Route::get('/dashboard', function () {
+        $user = auth()->user();
+        
+        // Debug: uncomment baris ini untuk debugging
+        // dd($user->getRoleNames(), $user->hasRole('admin'), $user->hasRole('member'));
+        
+        if ($user->hasRole('admin')) {
+            return redirect()->route('admin.dashboard');
+        } elseif ($user->hasRole('member')) {
+            return redirect()->route('member.dashboard');
+        }
+        
+        // Fallback jika tidak ada role
+        abort(403, 'Unauthorized access');
+    })->name('dashboard');
 
     /**
      * --------------------------
-     * ADMIN (akses CRUD grup)
+     * ADMIN ROUTES
      * --------------------------
      */
-    Route::middleware('role:admin')->group(function () {
-        Route::resource('/admin/groups', ArisanGroupController::class)->names([
-            'index'   => 'groups.index',
-            'create'  => 'groups.create',
-            'store'   => 'groups.store',
-            'edit'    => 'groups.edit',
-            'update'  => 'groups.update',
-            'destroy' => 'groups.destroy',
-        ]);
+    Route::prefix('admin')->middleware(['role:admin'])->name('admin.')->group(function () {
+        // Dashboard admin
+        Route::get('/dashboard', [DashboardController::class, 'dashboard'])->name('dashboard');
+        
+        // Payment management
+        Route::get('/payments', [PaymentController::class, 'index'])->name('payments.index');
+        Route::get('/payments/{payment}', [PaymentController::class, 'show'])->name('payments.show');
+        Route::get('/payments/{payment}/edit', [PaymentController::class, 'edit'])->name('payments.edit');
+        Route::put('/payments/{payment}', [PaymentController::class, 'update'])->name('payments.update');
+        Route::delete('/payments/{payment}', [PaymentController::class, 'destroy'])->name('payments.destroy');
+        Route::post('/payments/{payment}/verify', [PaymentController::class, 'verify'])->name('payments.verify');
+
+        // Groups management
+        Route::resource('groups', ArisanGroupController::class)->except(['show']);
+
+        // User management
+        Route::get('/users', [UserController::class, 'index'])->name('users.index');
+        Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
+        Route::post('/users', [UserController::class, 'store'])->name('users.store');
+        Route::get('/users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
+        Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
+        Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
     });
 
     /**
      * --------------------------
-     * MEMBER + ADMIN (dashboard & bayar)
+     * MEMBER ROUTES
      * --------------------------
      */
-    Route::middleware('role:member,admin')->group(function () {
-        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::prefix('member')->middleware(['role:member'])->name('member.')->group(function () {
+        // Dashboard member
+        Route::get('/dashboard', [DashboardController::class, 'member'])->name('dashboard');
         
-        // Route pembayaran - ubah ke GET untuk halaman pembayaran
-        Route::get('/pay/{group}', [PaymentController::class, 'pay'])->name('pay');
-        
-        // Route callback pages (redirect dari Midtrans)
-        Route::get('/payment/finish', [PaymentController::class, 'finish'])->name('payment.finish');
-        Route::get('/payment/unfinish', [PaymentController::class, 'unfinish'])->name('payment.unfinish');
-        Route::get('/payment/error', [PaymentController::class, 'error'])->name('payment.error');
+        // Member specific routes
+        Route::get('/groups', [ArisanGroupController::class, 'memberGroups'])->name('groups.index');
+        Route::get('/payments', [PaymentController::class, 'memberPayments'])->name('payments.index');
     });
-
-    // routes/web.php
-
-Route::prefix('arisan')->group(function () {
-    Route::get('/groups/{group}', [ArisanGroupController::class, 'show'])
-         ->name('groups.show');
-});
+    
+    // Shared routes (accessible by both admin and member)
+    Route::prefix('arisan')->group(function () {
+        Route::get('/groups/{group}', [ArisanGroupController::class, 'show'])->name('groups.show');
+    });
 
     /**
      * --------------------------
@@ -77,6 +102,9 @@ Route::prefix('arisan')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    
+    // Logout
+    Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
 });
 
 /**
@@ -84,7 +112,6 @@ Route::prefix('arisan')->group(function () {
  * MIDTRANS CALLBACK (tanpa auth)
  * --------------------------
  */
-// Route untuk notification callback dari Midtrans (POST)
 Route::post('/payment/callback', [PaymentController::class, 'callback'])->name('payment.callback');
 
 // Route login/register dari Breeze

@@ -10,6 +10,16 @@ class DashboardController extends Controller
 {
     public function index()
     {
+        $user = auth()->user();
+        
+        // Redirect berdasarkan role user
+        if ($user->hasRole('admin')) {
+            return redirect()->route('admin.dashboard');
+        } elseif ($user->hasRole('member')) {
+            return redirect()->route('member.dashboard');
+        }
+        
+        // Fallback jika tidak ada role yang cocok
         $groups = ArisanGroup::all();
         return view('dashboard', compact('groups'));
     }
@@ -41,5 +51,4 @@ class DashboardController extends Controller
 
         return view('member.dashboard', compact('activeGroups', 'completedPayments', 'pendingPayments'));
     }
-
 }
