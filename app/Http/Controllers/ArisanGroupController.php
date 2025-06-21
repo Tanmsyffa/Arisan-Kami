@@ -14,7 +14,16 @@ class ArisanGroupController extends Controller
             ->latest()
             ->paginate(10);
 
-        return view('arisan.groups.index', compact('groups'));
+        return view('admin.groups.index', compact('groups'));
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     * Method ini diperlukan untuk resource route
+     */
+    public function create()
+    {
+        return view('admin.groups.create');
     }
 
     // Membuat grup baru
@@ -35,7 +44,8 @@ class ArisanGroupController extends Controller
         // Otomatis tambahkan owner sebagai anggota
         $group->members()->attach(auth()->id());
 
-        return redirect()->route('groups.show', $group);
+        return redirect()->route('admin.groups.index')
+            ->with('success', 'Group created successfully');
     }
 
     public function show(ArisanGroup $group)
@@ -53,6 +63,47 @@ class ArisanGroupController extends Controller
             'group' => $group,
             'isOwner' => fn($userId) => $group->isOwner($userId)
         ]);
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     * Method ini diperlukan untuk resource route
+     */
+    public function edit(ArisanGroup $group)
+    {
+        return view('admin.groups.edit', compact('group'));
+    }
+
+    /**
+     * Update the specified resource in storage.
+     * Method ini diperlukan untuk resource route
+     */
+    public function update(Request $request, ArisanGroup $group)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'amount' => 'required|numeric|min:0',
+        ]);
+
+        $group->update([
+            'name' => $request->name,
+            'amount' => $request->amount,
+        ]);
+
+        return redirect()->route('admin.groups.index')
+            ->with('success', 'Group updated successfully');
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     * Method ini diperlukan untuk resource route
+     */
+    public function destroy(ArisanGroup $group)
+    {
+        $group->delete();
+
+        return redirect()->route('admin.groups.index')
+            ->with('success', 'Group deleted successfully');
     }
 
     // Menambahkan anggota ke grup
@@ -83,5 +134,16 @@ class ArisanGroupController extends Controller
         $group->update(['status' => 'completed']);
 
         return back()->with('success', 'Grup arisan ditandai selesai');
+    }
+
+    /**
+     * Display groups for members
+     */
+    public function memberGroups()
+    {
+        $user = auth()->user();
+        $groups = $user->arisanGroups()->with('members')->get();
+        
+        return view('member.groups.index', compact('groups'));
     }
 }

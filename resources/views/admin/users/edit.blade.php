@@ -14,36 +14,67 @@
                     <div class="col-md-6">
                         <div class="mb-3">
                             <label class="form-label">Nama Lengkap</label>
-                            <input type="text" class="form-control" name="name" value="{{ $user->name }}" required>
+                            <input type="text" 
+                                   class="form-control @error('name') is-invalid @enderror" 
+                                   name="name" 
+                                   value="{{ old('name', $user->name) }}" 
+                                   required>
+                            @error('name')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
                         
                         <div class="mb-3">
                             <label class="form-label">Email</label>
-                            <input type="email" class="form-control" name="email" value="{{ $user->email }}" required>
+                            <input type="email" 
+                                   class="form-control @error('email') is-invalid @enderror" 
+                                   name="email" 
+                                   value="{{ old('email', $user->email) }}" 
+                                   required>
+                            @error('email')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
                     </div>
                     
                     <div class="col-md-6">
                         <div class="mb-3">
-                            <label class="form-label">Password (Kosongkan jika tidak diubah)</label>
-                            <input type="password" class="form-control" name="password">
+                            <label class="form-label">Password <small>(Kosongkan jika tidak diubah)</small></label>
+                            <input type="password" 
+                                   class="form-control @error('password') is-invalid @enderror" 
+                                   name="password">
+                            @error('password')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
                         
                         <div class="mb-3">
                             <label class="form-label">Konfirmasi Password</label>
-                            <input type="password" class="form-control" name="password_confirmation">
+                            <input type="password" 
+                                   class="form-control @error('password_confirmation') is-invalid @enderror" 
+                                   name="password_confirmation">
                         </div>
                         
                         <div class="mb-3">
                             <label class="form-label">Role</label>
-                            <select class="form-select" name="role" required>
+                            <div class="@error('role') is-invalid @enderror">
                                 @foreach($roles as $role)
-                                <option value="{{ $role->id }}" 
-                                    {{ $user->hasRole($role->name) ? 'selected' : '' }}>
-                                    {{ $role->name }}
-                                </option>
+                                    <div class="form-check">
+                                        <input class="form-check-input" 
+                                               type="radio" 
+                                               name="role" 
+                                               id="role_{{ $role->id }}" 
+                                               value="{{ $role->id }}"
+                                               {{ old('role', $user->roles->first()?->id) == $role->id ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="role_{{ $role->id }}">
+                                            {{ $role->name }}
+                                        </label>
+                                    </div>
                                 @endforeach
-                            </select>
+                            </div>
+                            @error('role')
+                                <div class="text-danger small mt-1">{{ $message }}</div>
+                            @enderror
                         </div>
                     </div>
                 </div>

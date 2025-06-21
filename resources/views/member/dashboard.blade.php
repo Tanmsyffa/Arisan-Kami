@@ -37,6 +37,7 @@
     </style>
 </head>
 <body>
+    <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container">
             <a class="navbar-brand fw-bold" href="{{ route('home') }}">Arisan Kami</a>
@@ -51,12 +52,12 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">
+                        <a class="nav-link" href="{{ route('member.groups.index') }}">
                             <i class="fas fa-users me-1"></i> Arisan Saya
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">
+                        <a class="nav-link" href="{{ route('member.payments.index') }}">
                             <i class="fas fa-money-bill-wave me-1"></i> Pembayaran
                         </a>
                     </li>
@@ -68,12 +69,21 @@
                             <span>{{ auth()->user()->name }}</span>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="{{ route('profile.edit') }}">
-                                <i class="fas fa-user me-2"></i> Profil
-                            </a></li>
-                            <li><a class="dropdown-item" href="#">
-                                <i class="fas fa-cog me-2"></i> Pengaturan
-                            </a></li>
+                            <li>
+                                <a class="dropdown-item" href="{{ route('profile.edit') }}">
+                                    <i class="fas fa-user me-2"></i> Profil
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{{ route('profile.change-password') }}">
+                                    <i class="fas fa-key me-2"></i> Ganti Password
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{{ route('member.payments.history') }}">
+                                    <i class="fas fa-clock me-2"></i> Riwayat Pembayaran
+                                </a>
+                            </li>
                             <li><hr class="dropdown-divider"></li>
                             <li>
                                 <form method="POST" action="{{ route('logout') }}">
@@ -90,6 +100,7 @@
         </div>
     </nav>
 
+    <!-- Content -->
     <div class="container py-4">
         <div class="mb-4">
             <h2 class="mb-0">Dashboard Member</h2>
@@ -161,44 +172,7 @@
                         <h5 class="mb-0">Aktivitas Terbaru</h5>
                     </div>
                     <div class="card-body">
-                        <ul class="list-unstyled">
-                            <li class="activity-item">
-                                <div class="d-flex">
-                                    <div class="flex-shrink-0 text-success">
-                                        <i class="fas fa-check-circle fa-lg"></i>
-                                    </div>
-                                    <div class="flex-grow-1 ms-3">
-                                        <h6 class="mb-0">Pembayaran berhasil</h6>
-                                        <p class="mb-0 text-muted">Anda berhasil membayar arisan keluarga</p>
-                                        <small class="text-muted">2 jam lalu</small>
-                                    </div>
-                                </div>
-                            </li>
-                            <li class="activity-item">
-                                <div class="d-flex">
-                                    <div class="flex-shrink-0 text-primary">
-                                        <i class="fas fa-users fa-lg"></i>
-                                    </div>
-                                    <div class="flex-grow-1 ms-3">
-                                        <h6 class="mb-0">Bergabung dengan arisan</h6>
-                                        <p class="mb-0 text-muted">Anda bergabung dengan arisan rekan kerja</p>
-                                        <small class="text-muted">1 hari lalu</small>
-                                    </div>
-                                </div>
-                            </li>
-                            <li class="activity-item">
-                                <div class="d-flex">
-                                    <div class="flex-shrink-0 text-warning">
-                                        <i class="fas fa-exclamation-circle fa-lg"></i>
-                                    </div>
-                                    <div class="flex-grow-1 ms-3">
-                                        <h6 class="mb-0">Pembayaran tertunda</h6>
-                                        <p class="mb-0 text-muted">Pembayaran arisan RT menunggu konfirmasi</p>
-                                        <small class="text-muted">3 hari lalu</small>
-                                    </div>
-                                </div>
-                            </li>
-                        </ul>
+                        <p>Test</p>
                     </div>
                 </div>
                 
@@ -213,7 +187,7 @@
                                 Anda memiliki {{ $pendingPayments }} pembayaran yang belum diselesaikan
                             </div>
                         </div>
-                        <a href="#" class="btn btn-primary w-100">
+                        <a href="{{ route('member.payments.index') }}" class="btn btn-primary w-100">
                             <i class="fas fa-money-bill-wave me-2"></i> Bayar Sekarang
                         </a>
                     </div>
@@ -222,32 +196,23 @@
         </div>
     </div>
 
+    <!-- Footer -->
     <footer class="bg-light py-4 mt-5">
         <div class="container">
             <div class="row">
                 <div class="col-md-4 mb-3 mb-md-0">
-                    <h5>ArisanKu</h5>
+                    <h5>Arisan Kami</h5>
                     <p class="text-muted">Platform arisan digital untuk memudahkan pengelolaan arisan Anda.</p>
                 </div>
                 <div class="col-md-4 mb-3 mb-md-0">
                     <h5>Kontak</h5>
                     <ul class="list-unstyled">
-                        <li><i class="fas fa-envelope me-2"></i> support@arisanku.com</li>
-                        <li><i class="fas fa-phone me-2"></i> +62 21 1234 5678</li>
+                        <li><i class="fas fa-envelope me-2"></i> arisankami@gmail.com</li>
                     </ul>
-                </div>
-                <div class="col-md-4">
-                    <h5>Ikuti Kami</h5>
-                    <div class="d-flex gap-3">
-                        <a href="#" class="text-dark"><i class="fab fa-facebook fa-lg"></i></a>
-                        <a href="#" class="text-dark"><i class="fab fa-instagram fa-lg"></i></a>
-                        <a href="#" class="text-dark"><i class="fab fa-twitter fa-lg"></i></a>
-                        <a href="#" class="text-dark"><i class="fab fa-youtube fa-lg"></i></a>
-                    </div>
                 </div>
             </div>
             <hr class="my-4">
-            <p class="text-center mb-0">&copy; {{ date('Y') }} ArisanKu. Hak Cipta Dilindungi.</p>
+            <p class="text-center mb-0">&copy; {{ date('Y') }} Arisan Kami.</p>
         </div>
     </footer>
 

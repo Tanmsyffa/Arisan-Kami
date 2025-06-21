@@ -3,7 +3,7 @@
 @section('content')
 <h1 class="text-xl font-bold mb-4">Edit Grup Arisan</h1>
 
-<form method="POST" action="{{ route('groups.update', $group) }}" class="max-w-md">
+<form method="POST" action="{{ route('admin.groups.update', $group) }}" class="max-w-md">
     @csrf
     @method('PUT')
 

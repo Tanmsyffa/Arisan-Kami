@@ -52,7 +52,7 @@
                             </a>
                             
                             @if($group->isOwner(auth()->id()))
-                                <a href="{{ route('groups.edit', $group) }}" class="btn btn-sm btn-outline-secondary">
+                                <a href="{{ route('admin.groups.edit', $group) }}" class="btn btn-sm btn-outline-secondary">
                                     <i class="fas fa-edit me-1"></i> Edit
                                 </a>
                             @endif

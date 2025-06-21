@@ -37,15 +37,21 @@ class ArisanGroup extends Model
 
     /**
      * Relasi ke anggota grup (many-to-many)
+     * Try different possible column names based on your actual table structure
      */
     public function members(): BelongsToMany
     {
+        // Option 1: If column is named 'group_id'
         return $this->belongsToMany(
-            User::class,            // Model target
-            'arisan_group_members', // Nama tabel pivot
-            'arisan_group_id',      // FK di tabel pivot untuk ArisanGroup
-            'user_id'               // FK di tabel pivot untuk User
+            User::class,
+            'arisan_group_members',
+            'group_id',             // Try this if column is 'group_id'
+            'user_id'
         )->withTimestamps();
+        
+        // Option 2: If you're using Laravel's naming convention
+        // return $this->belongsToMany(User::class, 'arisan_group_members')
+        //     ->withTimestamps();
     }
 
     /**
@@ -112,6 +118,9 @@ class ArisanGroup extends Model
         return $this->payments()->sum('amount');
     }
 
+    /**
+     * Fixed: Menggunakan field yang benar dari tabel payments
+     */
     public function paymentStatus(): array
     {
         return $this->payments()
@@ -121,7 +130,8 @@ class ArisanGroup extends Model
             ->groupBy('user_id')
             ->map(function ($payments) {
                 $latest = $payments->first();
-                return match($latest->payment_status) {
+                // Fix: menggunakan 'status' bukan 'payment_status'
+                return match($latest->status) {
                     'success', 'settlement' => 'paid',
                     'pending' => 'pending',
                     default => 'unpaid'

@@ -154,7 +154,7 @@
         @if($group->isOwner(auth()->id()))
             <div class="card-footer">
                 <div class="d-flex justify-content-between">
-                    <a href="{{ route('groups.edit', $group) }}" class="btn btn-outline-primary">
+                    <a href="{{ route('admin.groups.edit', $group) }}" class="btn btn-outline-primary">
                         <i class="fas fa-edit me-1"></i> Edit Grup
                     </a>
                     
