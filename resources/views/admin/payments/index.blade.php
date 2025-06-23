@@ -1,125 +1,144 @@
 @extends('layouts.app')
 
 @section('title', 'Manajemen Pembayaran')
-@section('icon', 'fas fa-money-bill-wave')
-
+@section('icon')
+    <i class="fas fa-money-bill-wave"></i>
+@endsection
 @section('actions')
-    <a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#filterModal">
-        <i class="fas fa-filter"></i> Filter
-    </a>
+    <div class="btn-group">
+        <a href="{{ route('admin.payments.create') }}" class="btn btn-success">
+            <i class="fas fa-users"></i> Tambah Iuran
+        </a>
+        <div class="btn-group ms-2">
+            <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="fas fa-file-export"></i> Export
+            </button>
+            <ul class="dropdown-menu">
+                <li>
+                    <a class="dropdown-item" href="{{ route('admin.payments.export', 'pdf') . '?' . http_build_query(request()->query()) }}" target="_blank">
+                        <i class="fas fa-file-pdf"></i> PDF
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item" href="{{ route('admin.payments.export', 'excel') . '?' . http_build_query(request()->query()) }}">
+                        <i class="fas fa-file-excel"></i> Excel
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
 @endsection
 
 @section('content')
-    <div class="card">
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Grup Arisan</th>
-                            <th>Peserta</th>
-                            <th>Periode</th>
-                            <th>Jumlah</th>
-                            <th>Status</th>
-                            <th>Tanggal</th>
-                            <th>Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($payments as $payment)
-                        <tr>
-                            <td>{{ $payment->midtrans_order_id }}</td>
-                            <td>{{ $payment->group->name }}</td>
-                            <td>{{ $payment->user->name }}</td>
-                            <td>{{ $payment->period }}</td>
-                            <td>Rp {{ number_format($payment->amount, 0, ',', '.') }}</td>
-                            <td>
-                                @switch($payment->payment_status)
-                                    @case('paid')
-                                        <span class="badge bg-success">Lunas</span>
-                                        @break
-                                    @case('pending')
-                                        <span class="badge bg-warning">Menunggu</span>
-                                        @break
-                                    @case('failed')
-                                        <span class="badge bg-danger">Gagal</span>
-                                        @break
-                                    @case('challenge')
-                                        <span class="badge bg-info">Challenge</span>
-                                        @break
-                                    @default
-                                        <span class="badge bg-secondary">{{ $payment->payment_status }}</span>
-                                @endswitch
-                            </td>
-                            <td>{{ $payment->created_at->format('d M Y H:i') }}</td>
-                            <td>
-                                <a href="{{ route('admin.payments.show', $payment) }}" class="btn btn-sm btn-info">
-                                    <i class="fas fa-eye"></i>
-                                </a>
-                                <a href="{{ route('admin.payments.edit', $payment) }}" class="btn btn-sm btn-primary">
-                                    <i class="fas fa-edit"></i>
-                                </a>
-                                <form action="{{ route('admin.payments.destroy', $payment) }}" method="POST" class="d-inline">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Hapus pembayaran ini?')">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </form>
-                                @if($payment->payment_status === 'pending')
-                                <form action="{{ route('admin.payments.verify', $payment) }}" method="POST" class="d-inline">
-                                    @csrf
-                                    <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('Verifikasi pembayaran ini?')">
-                                        <i class="fas fa-check"></i> Verifikasi
-                                    </button>
-                                </form>
-                                @endif
-                            </td>
-                        </tr>
-                        @empty
-                        <tr>
-                            <td colspan="8" class="text-center">Tidak ada data pembayaran.</td>
-                        </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+    {{-- Alert Messages --}}
+    @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle"></i> {{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+
+    @if(session('error'))
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle"></i> {{ session('error') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+
+    {{-- Statistics Cards --}}
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="card-title">Total Pembayaran</h5>
+                            <h3 class="mb-0">{{ $stats['total_payments'] ?? 0 }}</h3>
+                        </div>
+                        <i class="fas fa-money-bill-wave fa-2x opacity-75"></i>
+                    </div>
+                </div>
             </div>
-            {{ $payments->links() }}
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="card-title">Lunas</h5>
+                            <h3 class="mb-0">{{ $stats['paid_payments'] ?? 0 }}</h3>
+                        </div>
+                        <i class="fas fa-check-circle fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="card-title">Pending</h5>
+                            <h3 class="mb-0">{{ $stats['pending_payments'] ?? 0 }}</h3>
+                        </div>
+                        <i class="fas fa-hourglass-half fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="card-title">Total Pendapatan</h5>
+                            <h3 class="mb-0">Rp {{ number_format($stats['total_income'] ?? 0, 0, ',', '.') }}</h3>
+                        </div>
+                        <i class="fas fa-wallet fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Filter Modal -->
-    <div class="modal fade" id="filterModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <form action="{{ route('admin.payments.index') }}" method="GET">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Filter Pembayaran</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="mb-3">
-                            <label class="form-label">Status Pembayaran</label>
-                            <select class="form-select" name="status">
-                                <option value="">Semua Status</option>
-                                <option value="pending" {{ request('status') === 'pending' ? 'selected' : '' }}>Pending</option>
-                                <option value="paid" {{ request('status') === 'paid' ? 'selected' : '' }}>Paid</option>
-                                <option value="failed" {{ request('status') === 'failed' ? 'selected' : '' }}>Failed</option>
-                                <option value="challenge" {{ request('status') === 'challenge' ? 'selected' : '' }}>Challenge</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Pencarian</label>
-                            <input type="text" class="form-control" name="search" placeholder="ID, Nama, Grup..." value="{{ request('search') }}">
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-primary">Terapkan Filter</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
+    @include('admin.payments.partials.table', ['payments' => $payments])
+    @include('admin.payments.partials.filters', ['groups' => $groups ?? []])
 @endsection
+
+@push('scripts')
+<script src="https://app.midtrans.com/snap/snap.js" data-client-key="{{ config('midtrans.client_key') }}"></script>
+<script>
+function openMidtransPayment(snapToken) {
+    snap.pay(snapToken, {
+        onSuccess: function(result) {
+            window.location.reload();
+        },
+        onPending: function(result) {
+            alert('Pembayaran dalam proses, silakan tunggu konfirmasi.');
+        },
+        onError: function(result) {
+            alert('Terjadi kesalahan dalam pembayaran.');
+        },
+        onClose: function() {
+            console.log('Payment popup closed');
+        }
+    });
+}
+
+$(document).ready(function() {
+    @if($payments->where('payment_status', 'pending')->count() > 0)
+        setInterval(function() {
+            checkPendingPayments();
+        }, 30000);
+    @endif
+});
+
+function checkPendingPayments() {
+    $.get('{{ route("admin.payments.check-status") }}', function(data) {
+        if (data.updated > 0) {
+            window.location.reload();
+        }
+    });
+}
+</script>
+@endpush

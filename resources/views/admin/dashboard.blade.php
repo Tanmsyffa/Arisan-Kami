@@ -1,7 +1,9 @@
 @extends('layouts.app')
 
 @section('title', 'Dashboard Admin')
-@section('icon', 'fas fa-tachometer-alt')
+@section('icon')
+    <i class="fas fa-tachometer-alt"></i>
+@endsection
 
 @section('content')
     <!-- Statistik -->

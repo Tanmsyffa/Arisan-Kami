@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'Admin Dashboard') - Arisan App</title>
+    <title>@yield('title', 'Admin Dashboard') - Arisan Kami</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -39,6 +39,7 @@
             display: flex;
             min-height: 100vh;
             overflow-x: hidden;
+            position: relative;
         }
         
         /* Sidebar */
@@ -53,7 +54,7 @@
             overflow-y: auto;
             transition: var(--transition);
             box-shadow: 0 0 25px rgba(0, 0, 0, 0.1);
-            z-index: 100;
+            z-index: 1000;
             transform: translateX(0);
         }
         
@@ -213,6 +214,7 @@
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            width: calc(100% - var(--sidebar-width));
         }
         
         .top-header {
@@ -224,7 +226,7 @@
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
             position: sticky;
             top: 0;
-            z-index: 90;
+            z-index: 900;
             gap: 1.5rem;
         }
         
@@ -239,6 +241,7 @@
             justify-content: center;
             cursor: pointer;
             transition: var(--transition);
+            border: none;
         }
         
         .menu-toggle:hover {
@@ -292,6 +295,8 @@
             color: var(--dark);
             position: relative;
             transition: var(--transition);
+            border: none;
+            cursor: pointer;
         }
         
         .notification-btn:hover, .message-btn:hover {
@@ -320,6 +325,7 @@
             align-items: center;
             gap: 0.8rem;
             cursor: pointer;
+            position: relative;
         }
         
         .user-avatar {
@@ -370,7 +376,8 @@
             color: var(--primary);
         }
         
-        .header-actions {
+        /* Ubah nama kelas untuk menghindari konflik */
+        .page-actions {
             display: flex;
             gap: 0.8rem;
         }
@@ -385,6 +392,11 @@
             cursor: pointer;
             transition: var(--transition);
             border: none;
+        }
+        
+        .btn:focus {
+            outline: 2px solid var(--primary-light);
+            outline-offset: 2px;
         }
         
         .btn-primary {
@@ -473,6 +485,7 @@
             border-left: 4px solid var(--primary);
             position: relative;
             overflow: hidden;
+            cursor: pointer;
         }
         
         .stat-card::before {
@@ -488,7 +501,7 @@
         
         .stat-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(126, 34, 206, 0.1);
+            box-shadow: 0 10px 25px rgba(126, 34, 206, 0.15);
         }
         
         .stat-info {
@@ -524,6 +537,18 @@
             flex-shrink: 0;
         }
         
+        /* Sidebar overlay untuk mobile */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
+        
         /* Responsive */
         @media (max-width: 992px) {
             .sidebar {
@@ -537,10 +562,15 @@
             
             .main-content {
                 margin-left: 0;
+                width: 100%;
             }
             
             .menu-toggle {
                 display: flex;
+            }
+            
+            .sidebar-overlay.active {
+                display: block;
             }
         }
         
@@ -566,7 +596,7 @@
                 align-items: flex-start;
             }
             
-            .header-actions {
+            .page-actions {
                 width: 100%;
                 justify-content: flex-end;
             }
@@ -591,7 +621,7 @@
             <div class="logo">
                 <i class="fas fa-users"></i>
             </div>
-            <div class="app-name">ArisanApp</div>
+            <div class="app-name">Arisan Kami</div>
         </div>
         
         <div class="admin-section">
@@ -642,13 +672,16 @@
         </div>
     </div>
     
+    <!-- Overlay untuk sidebar mobile -->
+    <div class="sidebar-overlay"></div>
+    
     <!-- Main Content -->
     <div class="main-content">
         <!-- Top Header -->
         <div class="top-header">
-            <div class="menu-toggle">
+            <button class="menu-toggle" aria-label="Toggle menu">
                 <i class="fas fa-bars"></i>
-            </div>
+            </button>
             
             <div class="search-container">
                 <i class="fas fa-search search-icon"></i>
@@ -656,10 +689,10 @@
             </div>
             
             <div class="header-actions">
-                <div class="notification-btn">
+                <button class="notification-btn" aria-label="Notifications">
                     <i class="fas fa-bell"></i>
                     <div class="notification-badge">3</div>
-                </div>
+                </button>
                 
                 <div class="user-profile">
                     <div class="user-avatar">
@@ -706,10 +739,10 @@
             <!-- Page Title and Actions -->
             <div class="page-header">
                 <h1 class="page-title">
-                    @yield('icon', '<i class="fas fa-tachometer-alt"></i>')
-                    @yield('title', 'Dashboard Admin')
+                    @yield('icon', '')
+                    @yield('title', '')
                 </h1>
-                <div class="header-actions">
+                <div class="page-actions">
                     @yield('actions')
                 </div>
             </div>
@@ -721,31 +754,43 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Toggle sidebar on mobile
+            // Elemen DOM
             const menuToggle = document.querySelector('.menu-toggle');
             const sidebar = document.querySelector('.sidebar');
+            const sidebarOverlay = document.querySelector('.sidebar-overlay');
+            const menuItems = document.querySelectorAll('.menu-item');
             
-            if (menuToggle) {
-                menuToggle.addEventListener('click', function() {
-                    sidebar.classList.toggle('active');
-                    document.body.classList.toggle('sidebar-active');
-                });
+            // Toggle sidebar
+            function toggleSidebar() {
+                sidebar.classList.toggle('active');
+                sidebarOverlay.classList.toggle('active');
+                
+                if (sidebar.classList.contains('active')) {
+                    document.body.style.overflow = 'hidden';
+                } else {
+                    document.body.style.overflow = '';
+                }
             }
             
-            // Close sidebar when clicking outside on mobile
-            document.addEventListener('click', function(event) {
-                const isMobile = window.innerWidth <= 992;
-                const isClickInsideSidebar = sidebar.contains(event.target);
-                const isClickOnToggle = menuToggle && menuToggle.contains(event.target);
-                
-                if (isMobile && sidebar.classList.contains('active') && 
-                    !isClickInsideSidebar && !isClickOnToggle) {
-                    sidebar.classList.remove('active');
-                    document.body.classList.remove('sidebar-active');
-                }
+            // Event listeners
+            if (menuToggle) {
+                menuToggle.addEventListener('click', toggleSidebar);
+            }
+            
+            if (sidebarOverlay) {
+                sidebarOverlay.addEventListener('click', toggleSidebar);
+            }
+            
+            // Tutup sidebar saat memilih menu di mobile
+            menuItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    if (window.innerWidth <= 992) {
+                        toggleSidebar();
+                    }
+                });
             });
             
-            // Auto close alerts after 5 seconds
+            // Auto close alerts
             setTimeout(() => {
                 document.querySelectorAll('.alert').forEach(alert => {
                     alert.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
@@ -757,11 +802,10 @@
                 });
             }, 5000);
             
-            // Resize handler
+            // Handle resize
             window.addEventListener('resize', function() {
                 if (window.innerWidth > 992 && sidebar.classList.contains('active')) {
-                    sidebar.classList.remove('active');
-                    document.body.classList.remove('sidebar-active');
+                    toggleSidebar();
                 }
             });
         });

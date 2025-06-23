@@ -1,10 +1,12 @@
 @extends('layouts.app')
 
 @section('title', 'Manajemen User')
-@section('icon', 'fas fa-user-friends')
+@section('icon')
+    <i class="fas fa-user-friends"></i>
+@endsection
 
 @section('actions')
-    <a href="{{ route('admin.users.create') }}" class="btn btn-primary">
+    <a href="{{ route('admin.users.create') }}" class="btn no-underline btn-primary">
         <i class="fas fa-plus"></i> Tambah User
     </a>
 @endsection

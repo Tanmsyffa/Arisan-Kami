@@ -54,6 +54,16 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/payments/{payment}/edit', [PaymentController::class, 'edit'])->name('payments.edit');
         Route::put('/payments/{payment}', [PaymentController::class, 'update'])->name('payments.update');
         Route::delete('/payments/{payment}', [PaymentController::class, 'destroy'])->name('payments.destroy');
+
+        // Export pembayaran
+        Route::get('/payments/export/{format}', [PaymentController::class, 'export'])
+        ->whereIn('format', ['pdf', 'excel'])
+        ->name('payments.export');
+
+        // Cek status pembayaran
+        Route::get('/payments/check-status', [PaymentController::class, 'checkPendingStatus'])->name('payments.check-status');
+
+
         
         // Payment Actions
         Route::post('/payments/{payment}/verify', [PaymentController::class, 'verify'])->name('payments.verify');
@@ -106,6 +116,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/payments', [PaymentController::class, 'memberPayments'])->name('payments.index');
         Route::get('/payments/create', [PaymentController::class, 'createPayment'])->name('payments.create');
         Route::post('/payments', [PaymentController::class, 'storePayment'])->name('payments.store');
+        Route::get('/payments/pay', [PaymentController::class, 'pay'])->name('payments.pay');
         Route::get('/payments/{payment}', [PaymentController::class, 'showPayment'])->name('payments.show');
         
         // Payment History
@@ -169,6 +180,9 @@ Route::post('/payment/callback', [PaymentController::class, 'callback'])->name('
 // Midtrans Notification Handler
 Route::post('/payment/notification', [PaymentController::class, 'handleNotification'])->name('payment.notification');
 
+Route::get('/payment/finish', [PaymentController::class, 'finish'])->name('payment.finish');
+Route::get('/payment/unfinish', [PaymentController::class, 'unfinish'])->name('payment.unfinish');
+Route::get('/payment/error', [PaymentController::class, 'error'])->name('payment.error');
 
 // Public Pages
 Route::get('/about', function () {
